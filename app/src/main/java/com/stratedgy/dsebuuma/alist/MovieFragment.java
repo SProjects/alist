@@ -1,10 +1,12 @@
 package com.stratedgy.dsebuuma.alist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import java.util.ArrayList;
@@ -32,6 +34,19 @@ public class MovieFragment extends Fragment {
         movieGridView = (GridView) rootView.findViewById(R.id.movie_grid_view);
         movieGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_movie, getData());
         movieGridView.setAdapter(movieGridViewAdapter);
+
+        movieGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GridItem item = (GridItem) parent.getItemAtPosition(position);
+
+                Intent intent = new Intent(getContext(), DetailActivity.class);
+                intent.putExtra("poster", item.getMoviePosterResource());
+                intent.putExtra("title", item.getMovieTitle());
+
+                startActivity(intent);
+            }
+        });
 
         return rootView;
     }
