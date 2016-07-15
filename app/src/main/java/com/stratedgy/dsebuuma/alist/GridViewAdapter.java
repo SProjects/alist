@@ -7,7 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -33,7 +34,6 @@ public class GridViewAdapter extends ArrayAdapter {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
             row = inflater.inflate(layoutResourceId, parent, false);
             holder = new ViewHolder();
-            holder.movieTitle = (TextView) row.findViewById(R.id.movie_title);
             holder.moviePoster = (ImageView) row.findViewById(R.id.movie_poster);
             row.setTag(holder);
         } else {
@@ -41,14 +41,16 @@ public class GridViewAdapter extends ArrayAdapter {
         }
 
         GridItem item = (GridItem) data.get(position);
-        holder.moviePoster.setImageResource(item.getMoviePosterResource());
-        holder.movieTitle.setText(item.getMovieTitle());
+        Picasso.with(context)
+                .load(item.getMoviePosterResource())
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.error)
+                .into(holder.moviePoster);
 
         return row;
     }
 
     static class ViewHolder {
         ImageView moviePoster;
-        TextView movieTitle;
     }
 }

@@ -38,11 +38,10 @@ public class MovieFragment extends Fragment {
 
     private ArrayList<GridItem> getData() {
         Integer[] movies = {
-                R.drawable.inter, R.drawable.inter, R.drawable.inter,
-                R.drawable.inter, R.drawable.inter, R.drawable.inter,
-                R.drawable.inter, R.drawable.inter, R.drawable.inter,
-                R.drawable.inter, R.drawable.inter, R.drawable.inter,
-                R.drawable.inter, R.drawable.inter, R.drawable.inter
+                R.drawable.inter, R.drawable.bat, R.drawable.whip,
+                R.drawable.inter, R.drawable.bat, R.drawable.inter,
+                R.drawable.whip, R.drawable.inter, R.drawable.bat,
+                R.drawable.inter, R.drawable.whip, R.drawable.inter
         };
 
         final ArrayList<GridItem> movieItems = new ArrayList<>();
