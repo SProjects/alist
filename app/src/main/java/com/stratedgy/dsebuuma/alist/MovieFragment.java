@@ -8,11 +8,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
+
+import com.stratedgy.dsebuuma.alist.model.Movie;
+import com.stratedgy.dsebuuma.alist.model.Movies;
+import com.stratedgy.dsebuuma.alist.network.Api;
 
 import java.util.ArrayList;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class MovieFragment extends Fragment {
+    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
     private GridView movieGridView;
     private GridViewAdapter movieGridViewAdapter;
 
@@ -30,41 +42,52 @@ public class MovieFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
-
+        this.getData();
         movieGridView = (GridView) rootView.findViewById(R.id.movie_grid_view);
-        movieGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_movie, getData());
-        movieGridView.setAdapter(movieGridViewAdapter);
 
         movieGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GridItem item = (GridItem) parent.getItemAtPosition(position);
+                Movie movie = (Movie) parent.getItemAtPosition(position);
 
                 Intent intent = new Intent(getContext(), DetailActivity.class);
-                intent.putExtra("poster", item.getMoviePosterResource());
-                intent.putExtra("title", item.getMovieTitle());
+                intent.putExtra("id", movie.getId());
 
                 startActivity(intent);
             }
         });
 
+
         return rootView;
     }
 
-    private ArrayList<GridItem> getData() {
-        Integer[] movies = {
-                R.drawable.inter, R.drawable.bat, R.drawable.whip,
-                R.drawable.inter, R.drawable.bat, R.drawable.inter,
-                R.drawable.whip, R.drawable.inter, R.drawable.bat,
-                R.drawable.inter, R.drawable.whip, R.drawable.inter
-        };
+    private void getData() {
+        final String BASE_URL = "https://api.themoviedb.org/3/movie/";
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        final ArrayList<GridItem> movieItems = new ArrayList<>();
+        Api apiService = retrofit.create(Api.class);
+        Call<Movies> call = apiService.getMovies();
+        call.enqueue(new Callback<Movies>() {
+            @Override
+            public void onResponse(Call<Movies> call, Response<Movies> response) {
+                Movies moviesList = response.body();
+                ArrayList<Movie> data = (ArrayList<Movie>) moviesList.getMovies();
 
-        for (int i = 0; i < movies.length; i++) {
-            movieItems.add(new GridItem(movies[i], "Interstaller #" + i));
-        }
+                movieGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_movie, data);
+                movieGridView.setAdapter(movieGridViewAdapter);
+            }
 
-        return movieItems;
+            @Override
+            public void onFailure(Call<Movies> call, Throwable t) {
+                Toast.makeText(
+                        getContext(), "Failed to fetch movies " + t.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
     }
 }

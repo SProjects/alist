@@ -15,8 +15,7 @@ public class DetailActivity extends AppCompatActivity {
             Intent intent = getIntent();
             Bundle arguments = new Bundle();
 
-            arguments.putInt("poster", intent.getIntExtra("poster", R.drawable.placeholder));
-            arguments.putString("title", intent.getStringExtra("title"));
+            arguments.putInt("id", intent.getIntExtra("id", 550));
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(arguments);

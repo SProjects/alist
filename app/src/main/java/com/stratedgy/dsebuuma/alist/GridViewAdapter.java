@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
+import com.stratedgy.dsebuuma.alist.model.Movie;
 
 import java.util.ArrayList;
 
@@ -16,6 +17,7 @@ public class GridViewAdapter extends ArrayAdapter {
     private Context context;
     private int layoutResourceId;
     private ArrayList data = new ArrayList();
+    private String POSTER_URI = "https://image.tmdb.org/t/p/w185";
 
     public GridViewAdapter(Context context, int resource, ArrayList data) {
         super(context, resource, data);
@@ -40,9 +42,11 @@ public class GridViewAdapter extends ArrayAdapter {
             holder = (ViewHolder) row.getTag();
         }
 
-        GridItem item = (GridItem) data.get(position);
+        Movie movie = (Movie) data.get(position);
+        String imageUri = POSTER_URI + movie.getPosterPath();
         Picasso.with(context)
-                .load(item.getMoviePosterResource())
+                .load(imageUri)
+                .fit()
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.error)
                 .into(holder.moviePoster);

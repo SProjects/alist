@@ -1,0 +1,2 @@
+#Rename this file to gradle.properties and insert the correct MovieDB api key
+MovieDbMapApiKey="[Insert MovieDB API key here]"
