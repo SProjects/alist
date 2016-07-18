@@ -76,10 +76,28 @@
             android:textAppearance="?android:textAppearanceSmall"
             android:text="@string/lorem_ipsum" />
 
-        <ListView
-            android:id="@+id/trailer_list_view"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </ListView>
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:orientation="vertical">
+
+            <View style="@style/Divider"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/trailer"
+                android:textSize="18sp"/>
+
+            <ListView
+                android:id="@+id/trailer_list_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="#000"
+                android:dividerHeight="1dp">
+            </ListView>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

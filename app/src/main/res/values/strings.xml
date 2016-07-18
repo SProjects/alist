@@ -8,4 +8,6 @@
         Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est.
         Mauris placerat eleifend leo.
     </string>
+
+    <string name="trailer">Trailers:</string>
 </resources>
