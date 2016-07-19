@@ -5,16 +5,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MovieFragment fragment = new MovieFragment();
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_movie, fragment)
-                .commit();
+        if (findViewById(R.id.movie_detail_container) != null) {
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(
+                                R.id.movie_detail_container,
+                                new DetailFragment(),
+                                DETAILFRAGMENT_TAG
+                        ).commit();
+            }
+        } else {
+            getSupportActionBar().setElevation(0f);
+        }
     }
 
     @Override

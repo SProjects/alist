@@ -66,10 +66,23 @@ public class MovieFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Movie movie = (Movie) parent.getItemAtPosition(position);
 
-                Intent intent = new Intent(getContext(), DetailActivity.class);
-                intent.putExtra("id", movie.getId());
+                if (getActivity().findViewById(R.id.movie_detail_container) != null) {
+                    Bundle arguments = new Bundle();
 
-                startActivity(intent);
+                    arguments.putInt("id", movie.getId());
+
+                    DetailFragment fragment = new DetailFragment();
+                    fragment.setArguments(arguments);
+
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.movie_detail_container, fragment)
+                            .commit();
+                } else {
+                    Intent intent = new Intent(getContext(), DetailActivity.class);
+                    intent.putExtra("id", movie.getId());
+
+                    startActivity(intent);
+                }
             }
         });
 
@@ -131,7 +144,7 @@ public class MovieFragment extends Fragment {
                 .build();
 
         Api apiService = retrofit.create(Api.class);
-        Call<Movies> call = apiService.getMovies(getPreferredSortTerm(getContext()));
+        Call<Movies> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
         call.enqueue(new Callback<Movies>() {
             @Override
             public void onResponse(Call<Movies> call, Response<Movies> response) {
@@ -151,13 +164,5 @@ public class MovieFragment extends Fragment {
             }
         });
 
-    }
-
-    private String getPreferredSortTerm(Context context) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        return pref.getString(
-                context.getString(R.string.pref_sort_term_key),
-                context.getString(R.string.pref_default_sort_term)
-        );
     }
 }
