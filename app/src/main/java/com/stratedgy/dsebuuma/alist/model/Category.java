@@ -3,7 +3,7 @@ package com.stratedgy.dsebuuma.alist.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Movies {
+public class Category {
 
     private int page;
     private List<Movie> results = new ArrayList<Movie>();

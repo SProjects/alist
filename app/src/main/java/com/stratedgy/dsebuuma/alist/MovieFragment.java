@@ -20,7 +20,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.stratedgy.dsebuuma.alist.model.Movie;
-import com.stratedgy.dsebuuma.alist.model.Movies;
+import com.stratedgy.dsebuuma.alist.model.Category;
 import com.stratedgy.dsebuuma.alist.network.Api;
 
 import java.util.ArrayList;
@@ -144,19 +144,19 @@ public class MovieFragment extends Fragment {
                 .build();
 
         Api apiService = retrofit.create(Api.class);
-        Call<Movies> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
-        call.enqueue(new Callback<Movies>() {
+        Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
+        call.enqueue(new Callback<Category>() {
             @Override
-            public void onResponse(Call<Movies> call, Response<Movies> response) {
-                Movies moviesList = response.body();
-                ArrayList<Movie> data = (ArrayList<Movie>) moviesList.getMovies();
+            public void onResponse(Call<Category> call, Response<Category> response) {
+                Category category = response.body();
+                ArrayList<Movie> data = (ArrayList<Movie>) category.getMovies();
 
                 movieGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_movie, data);
                 movieGridView.setAdapter(movieGridViewAdapter);
             }
 
             @Override
-            public void onFailure(Call<Movies> call, Throwable t) {
+            public void onFailure(Call<Category> call, Throwable t) {
                 Toast.makeText(
                         getContext(), "Failed to fetch movies " + t.getMessage(),
                         Toast.LENGTH_SHORT
