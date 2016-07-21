@@ -31,7 +31,6 @@ public class GridViewAdapter extends ArrayAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        final String FAVORITE_SORT = context.getString(R.string.pref_favorite_sort_term);
         View row = convertView;
         ViewHolder holder = null;
         String imageUri;
@@ -46,7 +45,7 @@ public class GridViewAdapter extends ArrayAdapter {
             holder = (ViewHolder) row.getTag();
         }
 
-        if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(context))) {
+        if (Utility.isInFavoriteMode(context)) {
             dbMovie = (com.stratedgy.dsebuuma.alist.orm.model.Movie) data.get(position);
             imageUri = POSTER_URI + dbMovie.getPosterPath();
         } else {

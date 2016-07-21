@@ -61,15 +61,13 @@ public class MovieFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
 
-        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
-
         this.getData(getContext());
         movieGridView = (GridView) rootView.findViewById(R.id.movie_grid_view);
 
         movieGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                if (Utility.isInFavoriteMode(getContext())) {
                     dbMovie =
                             (com.stratedgy.dsebuuma.alist.orm.model.Movie) parent
                                     .getItemAtPosition(position);
@@ -80,7 +78,7 @@ public class MovieFragment extends Fragment {
                 if (getActivity().findViewById(R.id.movie_detail_container) != null) {
                     Bundle arguments = new Bundle();
 
-                    if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                    if (Utility.isInFavoriteMode(getContext())) {
                         arguments.putLong("dbId", dbMovie.getId());
                     } else {
                         arguments.putInt("apiId", apiMovie.getId());
@@ -95,7 +93,7 @@ public class MovieFragment extends Fragment {
                 } else {
                     Intent intent = new Intent(getContext(), DetailActivity.class);
 
-                    if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                    if (Utility.isInFavoriteMode(getContext())) {
                         intent.putExtra("dbId", dbMovie.getId());
                     } else {
                         intent.putExtra("apiId", apiMovie.getId());
@@ -163,9 +161,7 @@ public class MovieFragment extends Fragment {
     }
 
     private void getData(Context context) {
-        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
-
-        if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(context))) {
+        if (Utility.isInFavoriteMode(context)) {
             List<com.stratedgy.dsebuuma.alist.orm.model.Movie> data =
                     com.stratedgy.dsebuuma.alist.orm.model.Movie.listAll(
                             com.stratedgy.dsebuuma.alist.orm.model.Movie.class

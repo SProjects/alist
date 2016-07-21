@@ -12,4 +12,12 @@ public class Utility {
                 context.getString(R.string.pref_default_sort_term)
         );
     }
+
+    public static boolean isInFavoriteMode(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getString(
+                context.getString(R.string.pref_sort_term_key),
+                context.getString(R.string.pref_default_sort_term)
+        ).equals(context.getString(R.string.pref_favorite_sort_term));
+    }
 }

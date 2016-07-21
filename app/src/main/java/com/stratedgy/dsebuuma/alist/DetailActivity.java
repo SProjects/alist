@@ -10,13 +10,12 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        final String FAVORITE_SORT = getApplicationContext().getString(R.string.pref_favorite_sort_term);
 
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             Bundle arguments = new Bundle();
 
-            if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getApplicationContext()))) {
+            if (Utility.isInFavoriteMode(getApplicationContext())) {
                 arguments.putLong("dbId", intent.getLongExtra("dbId", 1));
             } else {
                 arguments.putInt("apiId", intent.getIntExtra("apiId", 550));

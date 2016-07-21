@@ -57,8 +57,6 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
-
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mPosterView = (ImageView) rootView.findViewById(R.id.movie_detail_poster);
         mTitleView = (TextView) rootView.findViewById(R.id.movie_detail_title);
@@ -71,7 +69,7 @@ public class DetailFragment extends Fragment {
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+            if (Utility.isInFavoriteMode(getContext())) {
                 Long id = arguments.getLong("dbId", 1);
                 this.updateViewFromDb(id);
             } else {
