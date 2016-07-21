@@ -5,7 +5,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -32,7 +37,10 @@ import retrofit2.Response;
 public class DetailFragment extends Fragment {
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
     private String POSTER_URI = "https://image.tmdb.org/t/p/w185";
+    private String YOUTUBE_URI = "http://www.youtube.com/watch?v=";
 
+    private ShareActionProvider mShareActionProvider;
+    private String mShareableTrailer;
     ArrayAdapter<Youtube> mTrailerViewAdapter;
 
     private ImageView mPosterView;
@@ -45,7 +53,7 @@ public class DetailFragment extends Fragment {
     private Button mFavoriteButton;
 
     public DetailFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -89,6 +97,12 @@ public class DetailFragment extends Fragment {
             @Override
             public void onResponse(Call<Movie> call, Response<Movie> response) {
                 final Movie movie = response.body();
+                mShareableTrailer = YOUTUBE_URI + movie.getTrailers().getYoutube().get(0).getSource();
+
+                if (mShareActionProvider != null) {
+                    mShareActionProvider.setShareIntent(createShareTrailerIntent());
+                }
+
                 String imageUri = POSTER_URI + movie.getPosterPath();
 
                 mTitleView.setText(movie.getOriginalTitle());
@@ -115,8 +129,6 @@ public class DetailFragment extends Fragment {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Youtube trailer = (Youtube) parent.getItemAtPosition(position);
-
-                        String youtubeUri = "http://www.youtube.com/watch?v=";
                         String trailerId = trailer.getSource();
 
                         try {
@@ -128,7 +140,7 @@ public class DetailFragment extends Fragment {
                         } catch (ActivityNotFoundException ex) {
                             Intent intent = new Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse(youtubeUri + trailerId)
+                                    Uri.parse(YOUTUBE_URI + trailerId)
                             );
                             startActivity(intent);
                         }
@@ -142,6 +154,7 @@ public class DetailFragment extends Fragment {
                         com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
                                 com.stratedgy.dsebuuma.alist.orm.model.Movie
                                 .generateFromApiMovie(movie);
+
                         Long favoriteMovieId = favoriteMovie.save();
 
                         com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
@@ -179,6 +192,12 @@ public class DetailFragment extends Fragment {
                 com.stratedgy.dsebuuma.alist.orm.model.Movie.findById(
                         com.stratedgy.dsebuuma.alist.orm.model.Movie.class, id
                 );
+        mShareableTrailer = YOUTUBE_URI + movie.getYoutubeTrailers().get(0).getSource();
+
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
+
         String imageUri = POSTER_URI + movie.getPosterPath();
 
         mTitleView.setText(movie.getOriginalTitle());
@@ -227,5 +246,23 @@ public class DetailFragment extends Fragment {
         });
 
         mFavoriteButton.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.detail_fragment, menu);
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        if (mShareableTrailer != null) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
+    }
+
+    private Intent createShareTrailerIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mShareableTrailer);
+        return shareIntent;
     }
 }

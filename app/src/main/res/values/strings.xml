@@ -10,6 +10,8 @@
         <item>Favorite</item>
     </string-array>
 
+    <string name="action_share">Share</string>
+
     <string name="pref_sort_term_key">sort_term</string>
     <string name="pref_default_sort_term">popular</string>
     <string name="pref_top_rated_sort_term">top_rated</string>
