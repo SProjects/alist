@@ -61,6 +61,16 @@
                     android:textAppearance="?android:textAppearanceSmall"
                     android:textSize="12sp"
                     android:text="0/10" />
+                <Button
+                    android:id="@+id/favorite_movie"
+                    android:layout_width="110dp"
+                    android:layout_height="38dp"
+                    android:textAppearance="?android:textAppearanceSmall"
+                    android:textAllCaps="true"
+                    android:background="@color/colorPrimary"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:text="Mark as favorite"/>
             </LinearLayout>
         </LinearLayout>
 

@@ -8,11 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.stratedgy.dsebuuma.alist.model.Youtube;
-
 import java.util.ArrayList;
 
-public class TrailerAdapter extends ArrayAdapter<Youtube>{
+public class TrailerAdapter extends ArrayAdapter {
     private Context context;
     private int layoutResourceId;
     private ArrayList data = new ArrayList();

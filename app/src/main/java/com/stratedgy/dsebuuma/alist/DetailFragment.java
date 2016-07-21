@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import com.stratedgy.dsebuuma.alist.model.Youtube;
 import com.stratedgy.dsebuuma.alist.network.Api;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,6 +43,7 @@ public class DetailFragment extends Fragment {
     private TextView mLengthView;
     private TextView mRatingView;
     private ListView mTrailerView;
+    private Button mFavoriteButton;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -54,6 +57,8 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
+
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mPosterView = (ImageView) rootView.findViewById(R.id.movie_detail_poster);
         mTitleView = (TextView) rootView.findViewById(R.id.movie_detail_title);
@@ -62,17 +67,23 @@ public class DetailFragment extends Fragment {
         mLengthView = (TextView) rootView.findViewById(R.id.detail_movie_length);
         mRatingView = (TextView) rootView.findViewById(R.id.detail_movie_rating);
         mTrailerView = (ListView) rootView.findViewById(R.id.trailer_list_view);
+        mFavoriteButton = (Button) rootView.findViewById(R.id.favorite_movie);
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            int id = arguments.getInt("id", 550);
-            this.updateView(id);
+            if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                Long id = arguments.getLong("dbId", 1);
+                this.updateViewFromDb(id);
+            } else {
+                int id = arguments.getInt("apiId", 550);
+                this.updateViewFromApi(id);
+            }
         }
 
         return rootView;
     }
 
-    private void updateView(int id) {
+    private void updateViewFromApi(int id) {
         final String BASE_URL = "https://api.themoviedb.org/3/movie/";
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -84,7 +95,7 @@ public class DetailFragment extends Fragment {
         call.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(Call<Movie> call, Response<Movie> response) {
-                Movie movie = response.body();
+                final Movie movie = response.body();
                 String imageUri = POSTER_URI + movie.getPosterPath();
 
                 mTitleView.setText(movie.getOriginalTitle());
@@ -93,19 +104,18 @@ public class DetailFragment extends Fragment {
                 mLengthView.setText(movie.getRuntime() + " min");
                 mRatingView.setText(movie.getVoteAverage() + "/10" );
 
-                ArrayList<Youtube> movieTrailers = (ArrayList<Youtube>) movie.getTrailers().getYoutube();
-                mTrailerViewAdapter = new TrailerAdapter(
-                        getContext(),
-                        R.layout.trailer_movie_item,
-                        movieTrailers
-                );
-
                 Picasso.with(getContext())
                         .load(imageUri)
                         .placeholder(R.drawable.placeholder)
                         .error(R.drawable.error)
                         .into(mPosterView);
 
+                ArrayList<Youtube> movieTrailers = (ArrayList<Youtube>) movie.getTrailers().getYoutube();
+                mTrailerViewAdapter = new TrailerAdapter(
+                        getContext(),
+                        R.layout.trailer_movie_item,
+                        movieTrailers
+                );
                 mTrailerView.setAdapter(mTrailerViewAdapter);
 
                 mTrailerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -131,6 +141,34 @@ public class DetailFragment extends Fragment {
                         }
                     }
                 });
+
+
+                mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
+                                com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                .generateFromApiMovie(movie);
+                        Long favoriteMovieId = favoriteMovie.save();
+
+                        com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
+                                com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                        .findById(
+                                                com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
+                                                favoriteMovieId
+                                        );
+
+                        List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
+                                com.stratedgy.dsebuuma.alist.orm.model.Youtube
+                                        .generateFromApiMovie(movie, savedMovie);
+
+                        for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
+                            trailer.save();
+                        }
+
+                        Toast.makeText(getContext(), "Movie successfully favorited", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
@@ -143,4 +181,58 @@ public class DetailFragment extends Fragment {
         });
     }
 
+    private void updateViewFromDb(Long id) {
+        final com.stratedgy.dsebuuma.alist.orm.model.Movie movie =
+                com.stratedgy.dsebuuma.alist.orm.model.Movie.findById(
+                        com.stratedgy.dsebuuma.alist.orm.model.Movie.class, id
+                );
+        String imageUri = POSTER_URI + movie.getPosterPath();
+
+        mTitleView.setText(movie.getOriginalTitle());
+        mOverviewView.setText(movie.getOverview());
+        mReleaseView.setText(movie.getReleaseDate().split("-")[0]);
+        mLengthView.setText(movie.getRuntime() + " min");
+        mRatingView.setText(movie.getVoteAverage() + "/10" );
+
+        Picasso.with(getContext())
+                .load(imageUri)
+                .placeholder(R.drawable.placeholder)
+                .error(R.drawable.error)
+                .into(mPosterView);
+
+        List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers = movie.getYoutubeTrailers();
+        mTrailerViewAdapter = new TrailerAdapter(
+                getContext(),
+                R.layout.trailer_movie_item,
+                (ArrayList) movieTrailers
+        );
+        mTrailerView.setAdapter(mTrailerViewAdapter);
+
+        mTrailerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer =
+                        (com.stratedgy.dsebuuma.alist.orm.model.Youtube) parent.getItemAtPosition(position);
+
+                String youtubeUri = "http://www.youtube.com/watch?v=";
+                String trailerId = trailer.getSource();
+
+                try {
+                    Intent intent = new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("vnd.youtube:" + trailerId)
+                    );
+                    startActivity(intent);
+                } catch (ActivityNotFoundException ex) {
+                    Intent intent = new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(youtubeUri + trailerId)
+                    );
+                    startActivity(intent);
+                }
+            }
+        });
+
+        mFavoriteButton.setVisibility(View.INVISIBLE);
+    }
 }

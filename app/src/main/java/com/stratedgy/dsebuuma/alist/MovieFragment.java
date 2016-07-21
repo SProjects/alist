@@ -19,11 +19,12 @@ import android.widget.GridView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.stratedgy.dsebuuma.alist.model.Movie;
 import com.stratedgy.dsebuuma.alist.model.Category;
+import com.stratedgy.dsebuuma.alist.model.Movie;
 import com.stratedgy.dsebuuma.alist.network.Api;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,6 +38,8 @@ public class MovieFragment extends Fragment {
     private GridView movieGridView;
     private GridViewAdapter movieGridViewAdapter;
     SharedPreferences sortingPreference;
+    private Movie apiMovie;
+    private com.stratedgy.dsebuuma.alist.orm.model.Movie dbMovie;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -56,20 +59,32 @@ public class MovieFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
-        this.getData();
+
+        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
+
+        this.getData(getContext());
         movieGridView = (GridView) rootView.findViewById(R.id.movie_grid_view);
 
         movieGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Movie movie = (Movie) parent.getItemAtPosition(position);
+                if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                    dbMovie =
+                            (com.stratedgy.dsebuuma.alist.orm.model.Movie) parent
+                                    .getItemAtPosition(position);
+                } else {
+                    apiMovie = (Movie) parent.getItemAtPosition(position);
+                }
 
                 if (getActivity().findViewById(R.id.movie_detail_container) != null) {
                     Bundle arguments = new Bundle();
 
-                    arguments.putInt("id", movie.getId());
+                    if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                        arguments.putLong("dbId", dbMovie.getId());
+                    } else {
+                        arguments.putInt("apiId", apiMovie.getId());
+                    }
 
                     DetailFragment fragment = new DetailFragment();
                     fragment.setArguments(arguments);
@@ -79,7 +94,12 @@ public class MovieFragment extends Fragment {
                             .commit();
                 } else {
                     Intent intent = new Intent(getContext(), DetailActivity.class);
-                    intent.putExtra("id", movie.getId());
+
+                    if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(getContext()))) {
+                        intent.putExtra("dbId", dbMovie.getId());
+                    } else {
+                        intent.putExtra("apiId", apiMovie.getId());
+                    }
 
                     startActivity(intent);
                 }
@@ -124,9 +144,15 @@ public class MovieFragment extends Fragment {
                                 getContext().getString(R.string.pref_top_rated_sort_term)
                         );
                         break;
+                    case 2:
+                        editor.putString(
+                                getContext().getString(R.string.pref_sort_term_key),
+                                getContext().getString(R.string.pref_favorite_sort_term)
+                        );
+                        break;
                 }
                 editor.apply();
-                getData();
+                getData(getContext());
             }
 
             @Override
@@ -136,33 +162,48 @@ public class MovieFragment extends Fragment {
         });
     }
 
-    private void getData() {
-        final String BASE_URL = "https://api.themoviedb.org/3/movie/";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    private void getData(Context context) {
+        final String FAVORITE_SORT = getContext().getString(R.string.pref_favorite_sort_term);
 
-        Api apiService = retrofit.create(Api.class);
-        Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
-        call.enqueue(new Callback<Category>() {
-            @Override
-            public void onResponse(Call<Category> call, Response<Category> response) {
-                Category category = response.body();
-                ArrayList<Movie> data = (ArrayList<Movie>) category.getMovies();
+        if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(context))) {
+            List<com.stratedgy.dsebuuma.alist.orm.model.Movie> data =
+                    com.stratedgy.dsebuuma.alist.orm.model.Movie.listAll(
+                            com.stratedgy.dsebuuma.alist.orm.model.Movie.class
+                    );
 
-                movieGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_movie, data);
-                movieGridView.setAdapter(movieGridViewAdapter);
-            }
+            movieGridViewAdapter = new GridViewAdapter(
+                    getContext(), R.layout.grid_item_movie, (ArrayList) data
+            );
+            movieGridView.setAdapter(movieGridViewAdapter);
+        } else {
+            final String BASE_URL = "https://api.themoviedb.org/3/movie/";
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
 
-            @Override
-            public void onFailure(Call<Category> call, Throwable t) {
-                Toast.makeText(
-                        getContext(), "Failed to fetch movies " + t.getMessage(),
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+            Api apiService = retrofit.create(Api.class);
+            Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
+            call.enqueue(new Callback<Category>() {
+                @Override
+                public void onResponse(Call<Category> call, Response<Category> response) {
+                    Category category = response.body();
+                    ArrayList<Movie> data = (ArrayList<Movie>) category.getMovies();
 
+                    movieGridViewAdapter = new GridViewAdapter(
+                            getContext(), R.layout.grid_item_movie, data
+                    );
+                    movieGridView.setAdapter(movieGridViewAdapter);
+                }
+
+                @Override
+                public void onFailure(Call<Category> call, Throwable t) {
+                    Toast.makeText(
+                            getContext(), "Failed to fetch movies " + t.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
+        }
     }
 }

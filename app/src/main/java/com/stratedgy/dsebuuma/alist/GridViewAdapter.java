@@ -18,6 +18,8 @@ public class GridViewAdapter extends ArrayAdapter {
     private int layoutResourceId;
     private ArrayList data = new ArrayList();
     private String POSTER_URI = "https://image.tmdb.org/t/p/w185";
+    private Movie apiMovie;
+    private com.stratedgy.dsebuuma.alist.orm.model.Movie dbMovie;
 
     public GridViewAdapter(Context context, int resource, ArrayList data) {
         super(context, resource, data);
@@ -29,8 +31,10 @@ public class GridViewAdapter extends ArrayAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        final String FAVORITE_SORT = context.getString(R.string.pref_favorite_sort_term);
         View row = convertView;
         ViewHolder holder = null;
+        String imageUri;
 
         if (row == null) {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
@@ -42,8 +46,14 @@ public class GridViewAdapter extends ArrayAdapter {
             holder = (ViewHolder) row.getTag();
         }
 
-        Movie movie = (Movie) data.get(position);
-        String imageUri = POSTER_URI + movie.getPosterPath();
+        if (FAVORITE_SORT.equals(Utility.getPreferredSortTerm(context))) {
+            dbMovie = (com.stratedgy.dsebuuma.alist.orm.model.Movie) data.get(position);
+            imageUri = POSTER_URI + dbMovie.getPosterPath();
+        } else {
+            apiMovie = (Movie) data.get(position);
+            imageUri = POSTER_URI + apiMovie.getPosterPath();
+        }
+
         Picasso.with(context)
                 .load(imageUri)
                 .fit()
