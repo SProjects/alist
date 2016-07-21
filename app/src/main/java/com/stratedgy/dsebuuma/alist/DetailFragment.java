@@ -2,8 +2,11 @@ package com.stratedgy.dsebuuma.alist;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
@@ -54,11 +57,6 @@ public class DetailFragment extends Fragment {
 
     public DetailFragment() {
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -148,33 +146,42 @@ public class DetailFragment extends Fragment {
                 });
 
 
-                mFavoriteButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
-                                com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                .generateFromApiMovie(movie);
+                if (isMovieFavorited(movie)) {
+                    mFavoriteButton.setVisibility(View.INVISIBLE);
+                } else {
+                    mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
+                                    com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                            .generateFromApiMovie(movie);
 
-                        Long favoriteMovieId = favoriteMovie.save();
+                            Long favoriteMovieId = favoriteMovie.save();
 
-                        com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
-                                com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                        .findById(
-                                                com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
-                                                favoriteMovieId
-                                        );
+                            com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
+                                    com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                            .findById(
+                                                    com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
+                                                    favoriteMovieId
+                                            );
 
-                        List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
-                                com.stratedgy.dsebuuma.alist.orm.model.Youtube
-                                        .generateFromApiMovie(movie, savedMovie);
+                            List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
+                                    com.stratedgy.dsebuuma.alist.orm.model.Youtube
+                                            .generateFromApiMovie(movie, savedMovie);
 
-                        for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
-                            trailer.save();
+                            for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
+                                trailer.save();
+                            }
+
+                            if (isMovieFavorited(movie)) {
+                                mFavoriteButton.setVisibility(View.INVISIBLE);
+                                Toast.makeText(getContext(), "Movie successfully favorited", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getContext(), "Failed to favorite movie", Toast.LENGTH_SHORT).show();
+                            }
                         }
-
-                        Toast.makeText(getContext(), "Movie successfully favorited", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    });
+                }
             }
 
             @Override
@@ -258,11 +265,38 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
     private Intent createShareTrailerIntent() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, mShareableTrailer);
         return shareIntent;
+    }
+
+    private boolean isMovieFavorited(Movie movie) {
+        return com.stratedgy.dsebuuma.alist.orm.model.Movie.find(
+                com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
+                "movie_id = ?", String.valueOf(movie.getId())
+        ).size() > 0;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            SharedPreferences.Editor editor = PreferenceManager
+                    .getDefaultSharedPreferences(getContext())
+                    .edit();
+            editor.putString(
+                    getContext().getString(R.string.pref_sort_term_key),
+                    getContext().getString(R.string.pref_default_sort_term)
+            );
+            editor.apply();
+        }
+        return true;
     }
 }

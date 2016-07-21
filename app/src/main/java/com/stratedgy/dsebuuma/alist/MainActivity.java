@@ -1,6 +1,8 @@
 package com.stratedgy.dsebuuma.alist;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
@@ -30,5 +32,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.movie_sort_menu, menu);
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        editor.clear();
+        editor.apply();
+        super.onDestroy();
     }
 }
