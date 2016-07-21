@@ -20,6 +20,7 @@ import com.squareup.picasso.Picasso;
 import com.stratedgy.dsebuuma.alist.model.Movie;
 import com.stratedgy.dsebuuma.alist.model.Youtube;
 import com.stratedgy.dsebuuma.alist.network.Api;
+import com.stratedgy.dsebuuma.alist.network.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailFragment extends Fragment {
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
@@ -82,13 +81,9 @@ public class DetailFragment extends Fragment {
     }
 
     private void updateViewFromApi(int id) {
-        final String BASE_URL = "https://api.themoviedb.org/3/movie/";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        RestClient restClient = new RestClient();
 
-        Api apiService = retrofit.create(Api.class);
+        Api apiService = restClient.getApiService();
         Call<Movie> call = apiService.getMovie(id);
         call.enqueue(new Callback<Movie>() {
             @Override

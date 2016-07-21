@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.stratedgy.dsebuuma.alist.model.Category;
 import com.stratedgy.dsebuuma.alist.model.Movie;
 import com.stratedgy.dsebuuma.alist.network.Api;
+import com.stratedgy.dsebuuma.alist.network.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MovieFragment extends Fragment {
@@ -172,13 +171,9 @@ public class MovieFragment extends Fragment {
             );
             movieGridView.setAdapter(movieGridViewAdapter);
         } else {
-            final String BASE_URL = "https://api.themoviedb.org/3/movie/";
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+            RestClient restClient = new RestClient();
 
-            Api apiService = retrofit.create(Api.class);
+            Api apiService = restClient.getApiService();
             Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
             call.enqueue(new Callback<Category>() {
                 @Override
