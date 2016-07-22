@@ -171,30 +171,37 @@ public class MovieFragment extends Fragment {
             );
             movieGridView.setAdapter(movieGridViewAdapter);
         } else {
-            RestClient restClient = new RestClient();
+            if (Utility.isOnline(getContext())) {
+                RestClient restClient = new RestClient();
 
-            Api apiService = restClient.getApiService();
-            Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
-            call.enqueue(new Callback<Category>() {
-                @Override
-                public void onResponse(Call<Category> call, Response<Category> response) {
-                    Category category = response.body();
-                    ArrayList<Movie> data = (ArrayList<Movie>) category.getMovies();
+                Api apiService = restClient.getApiService();
+                Call<Category> call = apiService.getMovies(Utility.getPreferredSortTerm(getContext()));
+                call.enqueue(new Callback<Category>() {
+                    @Override
+                    public void onResponse(Call<Category> call, Response<Category> response) {
+                        Category category = response.body();
+                        ArrayList<Movie> data = (ArrayList<Movie>) category.getMovies();
 
-                    movieGridViewAdapter = new GridViewAdapter(
-                            getContext(), R.layout.grid_item_movie, data
-                    );
-                    movieGridView.setAdapter(movieGridViewAdapter);
-                }
+                        movieGridViewAdapter = new GridViewAdapter(
+                                getContext(), R.layout.grid_item_movie, data
+                        );
+                        movieGridView.setAdapter(movieGridViewAdapter);
+                    }
 
-                @Override
-                public void onFailure(Call<Category> call, Throwable t) {
-                    Toast.makeText(
-                            getContext(), "Failed to fetch movies " + t.getMessage(),
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
-            });
+                    @Override
+                    public void onFailure(Call<Category> call, Throwable t) {
+                        Toast.makeText(
+                                getContext(), "Failed to fetch movies " + t.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+            } else {
+                Toast.makeText(
+                        getContext(), "No network connectivity at this time.", Toast.LENGTH_LONG
+                ).show();
+            }
+
         }
     }
 }

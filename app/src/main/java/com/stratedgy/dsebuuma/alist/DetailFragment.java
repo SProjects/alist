@@ -87,111 +87,117 @@ public class DetailFragment extends Fragment {
     }
 
     private void updateViewFromApi(int id) {
-        RestClient restClient = new RestClient();
+        if (Utility.isOnline(getContext())) {
+            RestClient restClient = new RestClient();
 
-        Api apiService = restClient.getApiService();
-        Call<Movie> call = apiService.getMovie(id);
-        call.enqueue(new Callback<Movie>() {
-            @Override
-            public void onResponse(Call<Movie> call, Response<Movie> response) {
-                final Movie movie = response.body();
-                mShareableTrailer = YOUTUBE_URI + movie.getTrailers().getYoutube().get(0).getSource();
+            Api apiService = restClient.getApiService();
+            Call<Movie> call = apiService.getMovie(id);
+            call.enqueue(new Callback<Movie>() {
+                @Override
+                public void onResponse(Call<Movie> call, Response<Movie> response) {
+                    final Movie movie = response.body();
+                    mShareableTrailer = YOUTUBE_URI + movie.getTrailers().getYoutube().get(0).getSource();
 
-                if (mShareActionProvider != null) {
-                    mShareActionProvider.setShareIntent(createShareTrailerIntent());
-                }
-
-                String imageUri = POSTER_URI + movie.getPosterPath();
-
-                mTitleView.setText(movie.getOriginalTitle());
-                mOverviewView.setText(movie.getOverview());
-                mReleaseView.setText(Utility.getYearFromDateString(movie.getReleaseDate()));
-                mLengthView.setText(Utility.formatRuntime(getContext(), movie.getRuntime()));
-                mRatingView.setText(Utility.formatRating(getContext(), (float) movie.getVoteAverage()));
-
-                Picasso.with(getContext())
-                        .load(imageUri)
-                        .placeholder(R.drawable.placeholder)
-                        .error(R.drawable.error)
-                        .into(mPosterView);
-
-                ArrayList<Youtube> movieTrailers = (ArrayList<Youtube>) movie.getTrailers().getYoutube();
-                mTrailerViewAdapter = new TrailerAdapter(
-                        getContext(),
-                        R.layout.trailer_movie_item,
-                        movieTrailers
-                );
-                mTrailerView.setAdapter(mTrailerViewAdapter);
-
-                mTrailerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Youtube trailer = (Youtube) parent.getItemAtPosition(position);
-                        String trailerId = trailer.getSource();
-
-                        try {
-                            Intent intent = new Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("vnd.youtube:" + trailerId)
-                            );
-                            startActivity(intent);
-                        } catch (ActivityNotFoundException ex) {
-                            Intent intent = new Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(YOUTUBE_URI + trailerId)
-                            );
-                            startActivity(intent);
-                        }
+                    if (mShareActionProvider != null) {
+                        mShareActionProvider.setShareIntent(createShareTrailerIntent());
                     }
-                });
 
+                    String imageUri = POSTER_URI + movie.getPosterPath();
 
-                if (isMovieFavorited(movie)) {
-                    mFavoriteButton.setVisibility(View.INVISIBLE);
-                } else {
-                    mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+                    mTitleView.setText(movie.getOriginalTitle());
+                    mOverviewView.setText(movie.getOverview());
+                    mReleaseView.setText(Utility.getYearFromDateString(movie.getReleaseDate()));
+                    mLengthView.setText(Utility.formatRuntime(getContext(), movie.getRuntime()));
+                    mRatingView.setText(Utility.formatRating(getContext(), (float) movie.getVoteAverage()));
+
+                    Picasso.with(getContext())
+                            .load(imageUri)
+                            .placeholder(R.drawable.placeholder)
+                            .error(R.drawable.error)
+                            .into(mPosterView);
+
+                    ArrayList<Youtube> movieTrailers = (ArrayList<Youtube>) movie.getTrailers().getYoutube();
+                    mTrailerViewAdapter = new TrailerAdapter(
+                            getContext(),
+                            R.layout.trailer_movie_item,
+                            movieTrailers
+                    );
+                    mTrailerView.setAdapter(mTrailerViewAdapter);
+
+                    mTrailerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
-                        public void onClick(View v) {
-                            com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
-                                    com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                            .generateFromApiMovie(movie);
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            Youtube trailer = (Youtube) parent.getItemAtPosition(position);
+                            String trailerId = trailer.getSource();
 
-                            Long favoriteMovieId = favoriteMovie.save();
-
-                            com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
-                                    com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                            .findById(
-                                                    com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
-                                                    favoriteMovieId
-                                            );
-
-                            List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
-                                    com.stratedgy.dsebuuma.alist.orm.model.Youtube
-                                            .generateFromApiMovie(movie, savedMovie);
-
-                            for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
-                                trailer.save();
-                            }
-
-                            if (isMovieFavorited(movie)) {
-                                mFavoriteButton.setVisibility(View.INVISIBLE);
-                                Toast.makeText(getContext(), "Movie successfully favorited", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(getContext(), "Failed to favorite movie", Toast.LENGTH_SHORT).show();
+                            try {
+                                Intent intent = new Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("vnd.youtube:" + trailerId)
+                                );
+                                startActivity(intent);
+                            } catch (ActivityNotFoundException ex) {
+                                Intent intent = new Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(YOUTUBE_URI + trailerId)
+                                );
+                                startActivity(intent);
                             }
                         }
                     });
-                }
-            }
 
-            @Override
-            public void onFailure(Call<Movie> call, Throwable t) {
-                Toast.makeText(
-                        getContext(), "Failed to fetch movie " + t.getMessage(),
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+
+                    if (isMovieFavorited(movie)) {
+                        mFavoriteButton.setVisibility(View.INVISIBLE);
+                    } else {
+                        mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
+                                        com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                                .generateFromApiMovie(movie);
+
+                                Long favoriteMovieId = favoriteMovie.save();
+
+                                com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
+                                        com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                                .findById(
+                                                        com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
+                                                        favoriteMovieId
+                                                );
+
+                                List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
+                                        com.stratedgy.dsebuuma.alist.orm.model.Youtube
+                                                .generateFromApiMovie(movie, savedMovie);
+
+                                for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
+                                    trailer.save();
+                                }
+
+                                if (isMovieFavorited(movie)) {
+                                    mFavoriteButton.setVisibility(View.INVISIBLE);
+                                    Toast.makeText(getContext(), "Movie successfully favorited", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(getContext(), "Failed to favorite movie", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Movie> call, Throwable t) {
+                    Toast.makeText(
+                            getContext(), "Failed to fetch movie " + t.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
+        } else {
+            Toast.makeText(
+                    getContext(), "No network connectivity at this time.", Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private void updateViewFromDb(Long id) {

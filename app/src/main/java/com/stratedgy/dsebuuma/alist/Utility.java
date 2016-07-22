@@ -2,6 +2,8 @@ package com.stratedgy.dsebuuma.alist;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 public class Utility {
@@ -31,5 +33,12 @@ public class Utility {
 
     public static String getYearFromDateString(String dateString) {
         return dateString.split("-")[0];
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
     }
 }
