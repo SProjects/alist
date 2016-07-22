@@ -105,9 +105,9 @@ public class DetailFragment extends Fragment {
 
                 mTitleView.setText(movie.getOriginalTitle());
                 mOverviewView.setText(movie.getOverview());
-                mReleaseView.setText(movie.getReleaseDate().split("-")[0]);
-                mLengthView.setText(movie.getRuntime() + " min");
-                mRatingView.setText(movie.getVoteAverage() + "/10" );
+                mReleaseView.setText(Utility.getYearFromDateString(movie.getReleaseDate()));
+                mLengthView.setText(Utility.formatRuntime(getContext(), movie.getRuntime()));
+                mRatingView.setText(Utility.formatRating(getContext(), (float) movie.getVoteAverage()));
 
                 Picasso.with(getContext())
                         .load(imageUri)
@@ -209,9 +209,9 @@ public class DetailFragment extends Fragment {
 
         mTitleView.setText(movie.getOriginalTitle());
         mOverviewView.setText(movie.getOverview());
-        mReleaseView.setText(movie.getReleaseDate().split("-")[0]);
-        mLengthView.setText(movie.getRuntime() + " min");
-        mRatingView.setText(movie.getVoteAverage() + "/10" );
+        mReleaseView.setText(Utility.getYearFromDateString(movie.getReleaseDate()));
+        mLengthView.setText(Utility.formatRuntime(getContext(), movie.getRuntime()));
+        mRatingView.setText(Utility.formatRating(getContext(), (float) movie.getVoteAverage()));
 
         Picasso.with(getContext())
                 .load(imageUri)
@@ -287,6 +287,7 @@ public class DetailFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
         if (item.getItemId() == android.R.id.home) {
             SharedPreferences.Editor editor = PreferenceManager
                     .getDefaultSharedPreferences(getContext())
