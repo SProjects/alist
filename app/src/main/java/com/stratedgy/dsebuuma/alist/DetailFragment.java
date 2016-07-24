@@ -24,6 +24,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.orm.SugarTransactionHelper;
 import com.squareup.picasso.Picasso;
 import com.stratedgy.dsebuuma.alist.model.Movie;
 import com.stratedgy.dsebuuma.alist.model.Youtube;
@@ -153,26 +154,31 @@ public class DetailFragment extends Fragment {
                         mFavoriteButton.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
-                                        com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                                .generateFromApiMovie(movie);
+                                SugarTransactionHelper.doInTransaction(new SugarTransactionHelper.Callback() {
+                                    @Override
+                                    public void manipulateInTransaction() {
+                                        com.stratedgy.dsebuuma.alist.orm.model.Movie favoriteMovie =
+                                                com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                                        .generateFromApiMovie(movie);
 
-                                Long favoriteMovieId = favoriteMovie.save();
+                                        Long favoriteMovieId = favoriteMovie.save();
 
-                                com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
-                                        com.stratedgy.dsebuuma.alist.orm.model.Movie
-                                                .findById(
-                                                        com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
-                                                        favoriteMovieId
-                                                );
+                                        com.stratedgy.dsebuuma.alist.orm.model.Movie savedMovie =
+                                                com.stratedgy.dsebuuma.alist.orm.model.Movie
+                                                        .findById(
+                                                                com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
+                                                                favoriteMovieId
+                                                        );
 
-                                List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
-                                        com.stratedgy.dsebuuma.alist.orm.model.Youtube
-                                                .generateFromApiMovie(movie, savedMovie);
+                                        List<com.stratedgy.dsebuuma.alist.orm.model.Youtube> movieTrailers =
+                                                com.stratedgy.dsebuuma.alist.orm.model.Youtube
+                                                        .generateFromApiMovie(movie, savedMovie);
 
-                                for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
-                                    trailer.save();
-                                }
+                                        for (com.stratedgy.dsebuuma.alist.orm.model.Youtube trailer:movieTrailers) {
+                                            trailer.save();
+                                        }
+                                    }
+                                });
 
                                 if (isMovieFavorited(movie)) {
                                     mFavoriteButton.setVisibility(View.INVISIBLE);
