@@ -20,5 +20,5 @@
     <string name="mark_as_favorite">Mark as favorite</string>
 
     <string name="runtime_format"><xliff:g id="runtime">%1$d</xliff:g> min</string>
-    <string name="rating_format"><xliff:g id="rating">%1.0f</xliff:g>/10</string>
+    <string name="rating_format"><xliff:g id="rating">%1.1f</xliff:g>/10</string>
 </resources>
