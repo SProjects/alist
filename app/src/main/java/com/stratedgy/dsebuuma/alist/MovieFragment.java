@@ -49,10 +49,7 @@ public class MovieFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        sortingPreference = getActivity().getSharedPreferences(
-                getActivity().getPackageName(),
-                Context.MODE_PRIVATE
-        );
+        sortingPreference = PreferenceManager.getDefaultSharedPreferences(getContext());
     }
 
     @Override
@@ -60,8 +57,8 @@ public class MovieFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
 
-        this.getData(getContext());
         movieGridView = (GridView) rootView.findViewById(R.id.movie_grid_view);
+        this.getData(getContext());
 
         movieGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -124,9 +121,7 @@ public class MovieFragment extends Fragment {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                SharedPreferences.Editor editor = PreferenceManager
-                        .getDefaultSharedPreferences(getContext())
-                        .edit();
+                SharedPreferences.Editor editor = sortingPreference.edit();
 
                 switch (position) {
                     case 0:

@@ -2,10 +2,8 @@ package com.stratedgy.dsebuuma.alist;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -295,21 +293,5 @@ public class DetailFragment extends Fragment {
                 com.stratedgy.dsebuuma.alist.orm.model.Movie.class,
                 "movie_id = ?", String.valueOf(movie.getId())
         ).size() > 0;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        super.onOptionsItemSelected(item);
-        if (item.getItemId() == android.R.id.home) {
-            SharedPreferences.Editor editor = PreferenceManager
-                    .getDefaultSharedPreferences(getContext())
-                    .edit();
-            editor.putString(
-                    getContext().getString(R.string.pref_sort_term_key),
-                    getContext().getString(R.string.pref_default_sort_term)
-            );
-            editor.apply();
-        }
-        return true;
     }
 }
